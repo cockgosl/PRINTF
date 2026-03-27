@@ -1,8 +1,0 @@
-     1                                  
-     2                                  global my_printf
-     3                                  
-     4                                  section .text
-     5                                  my_printf:
-     6 00000000 B804000000                      mov eax, 4
-     7 00000005 CD80                            int 0x80
-     8 00000007 C3                              ret
