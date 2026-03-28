@@ -7,6 +7,6 @@ int main() {
     char o = 'o';
     char w = 'w';
     int h = 257;
-    my_printf("meow = %c %x ", h, h);
+    my_printf("meow = %c , %d  ,%x\n", m, h, h);
     return 0;
 }
