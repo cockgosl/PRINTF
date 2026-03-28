@@ -6,6 +6,7 @@ int main() {
     char e = 'e';
     char o = 'o';
     char w = 'w';
-    my_printf("%c%c%c%c", m,e,o,w);
+    int h = 257;
+    my_printf("meow = %c %x ", h, h);
     return 0;
 }
