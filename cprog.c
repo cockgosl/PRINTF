@@ -1,4 +1,5 @@
 #include <stdlib.h> 
+#include <string.h>
 extern void my_printf(const char* string, ...);
 
 int main() {
@@ -6,7 +7,8 @@ int main() {
     char e = 'e';
     char o = 'o';
     char w = 'w';
-    int h = 257;
-    my_printf("meow = %c , %d  ,%x\n", m, h, h);
+    char* meow = "meow";
+    int h = strlen(meow);
+    my_printf("%s%ddfgj", meow, h);
     return 0;
 }

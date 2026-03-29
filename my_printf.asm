@@ -15,6 +15,8 @@ my_printf:
 ;---------------------------------------------------------------------------;
 
         WRITING:
+        cmp word [rel LEN], 256
+        jae STOP
         movzx r10, word [rel INDEX]             ;Index - the number of the symbol that we are to read from rdi
         mov al, [rdi + r10]                                    
         cmp al, 0                               ;if the NULL byte is given, we've read everything, so terminate              
@@ -43,7 +45,8 @@ GO_BACK:                                        ;the value is stored in rax
 ;---------------------------------------------------------------------------;
 
         case_c:
-
+        cmp word [rel LEN], 256
+        jae STOP
         lea r11, [rel buff_to_wr]               ;char case - it puts the symbol in r11:[r10] 
         movzx r10, word [rel LEN]
         mov [r11 + r10], byte al
@@ -62,6 +65,8 @@ GO_BACK:                                        ;the value is stored in rax
 ;---------------------------------------------------------------------------;
 
         case_d:
+        cmp word [rel LEN], 256
+        jae STOP
         push rdi                                ;save regs
         push rdx
         push r8 
@@ -73,32 +78,34 @@ GO_BACK:                                        ;the value is stored in rax
         lea rdi, [rel convert_value]
         mov r9, 10                              ;rax will be divided by 10
         xor r8, r8
-CONVERT_D:
+.CONVERT_D:
         xor rdx, rdx
         div r9                                  ;the remainder is in rdx, 
 
-SAFE:
+.SAFE:
         add dl, '0'                             ;convert a digit to ASSCI
         mov byte [rdi + r8], dl                 ;put it in the array convert_value
         cmp rax, 0                              ;the sign of the end
-        je WRITE 
+        je .WRITE 
         inc r8                                  ;r8 here serves as an index
-        jmp CONVERT_D  
+        jmp .CONVERT_D  
 
-WRITE:                                          ;here is a loop, that rewrites symbols from convert_value to buff_to_wr from the greatest
+.WRITE:                                          ;here is a loop, that rewrites symbols from convert_value to buff_to_wr from the greatest
         inc r8 
         mov rcx , r8 
 
-COPY:
+.COPY:
+        cmp word [rel LEN], 256
+        jae .END
         dec r8
         movzx r10, word [rel LEN]               
         mov al, byte [rdi + r8]
         mov [r11 + r10], al
         add word [rel LEN], 1
-loop COPY
+loop .COPY
         add word [rel COUNTER], 1
         add word [rel INDEX], 2
-
+.END:
         pop rcx
         pop r9 
         pop r8
@@ -109,8 +116,35 @@ loop COPY
 
         case_o:
 ;---------------------------------------------------------------------------;
-
+;this case is about printing a string, that is stored in rax
+;
         case_s:
+        push rcx
+        push r9
+        lea r11, [rel buff_to_wr]               ;symbols will be written in r11:[r10]
+        movzx r10, word [rel LEN] 
+        xor rcx, rcx         
+        mov ecx, 256   
+        sub ecx, r10d
+        xor r9, r9
+.COPY:
+        cmp word [rel LEN], 256
+        jae .END
+        cmp byte [rax + r9], 0
+        je .END
+        mov bl , [rax + r9]
+        mov [r11 + r10], bl
+        inc r9
+        inc r10
+        add word [rel LEN], 1
+loop .COPY
+.END:
+        add word [rel INDEX], 2
+        add word [rel COUNTER], 1
+        pop r9
+        pop rcx
+        jmp WRITING
+
 ;---------------------------------------------------------------------------;
 ;the algorithm is based on cyclic permutation(it's useful to separate bytes);
 ;from each other. r8 is a flag if 00, null bytes are being skipped          ;
@@ -126,24 +160,26 @@ loop COPY
 
         mov rcx, 16                     ;all 8 bytes are to be converted
         xor r8, r8
-	CONVERT_H:							
+.CONVERT_H:
+        cmp word [rel LEN], 256
+        jae .END
 	rol rax, 4	                ;cyclic permutation to the left 1234 -> 4231
 	mov dl, al                      ;denuvo
 	and dl, 0Fh			;everything but the lowest byte in dl is 0
 	
         cmp r8, 1                       ;until the first not null symbol was written - it skips zeroes
-        je CONTINUE
+        je .CONTINUE
         cmp dl, 0
-        je SKIP
+        je .SKIP
 
-        CONTINUE:
+.CONTINUE:
 
 	cmp dl, 9                       ;if the value is bellow - digit
-	jbe DIGIT
+	jbe .DIGIT
 
 	add dl,	'A' - '9' - 1           ;if not - letter
 		
-	DIGIT:
+.DIGIT:
 	add dl, '0'							
 	
 
@@ -153,13 +189,13 @@ loop COPY
 	add r10, 1
         add word [rel LEN], 1
 
-        SKIP:
+.SKIP:
 
-	loop CONVERT_H
+loop .CONVERT_H
 
         add word [rel INDEX], 2
         add word [rel COUNTER], 1
-
+.END:
         pop rdx
         pop r8
         pop rcx
@@ -169,7 +205,6 @@ loop COPY
 ;---------------------------------------------------------------------------;
 
         case_default:
-
         lea r11, [rel buff_to_wr]
         movzx r10, word [rel LEN]
         mov al, [rel SYMBOL]                    ;the initial value was stored in 'SYMBOL'
