@@ -7,8 +7,8 @@ int main() {
     char e = 'e';
     char o = 'o';
     char w = 'w';
-    char* meow = "meow";
-    int h = strlen(meow);
-    my_printf("%s%ddfgj", meow, h);
+    char* meow = "meowwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww";
+    int h = 987;
+    my_printf("%x\n", h);
     return 0;
 }
