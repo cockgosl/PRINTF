@@ -4,26 +4,25 @@ global my_printf
 section .text
 
 ;---------------------------------------------------------------------------;
-;The function works with given string, whic is stored in rdi. The purpose   ;
-;of it is to correctly interpretate given bytes, according to specificators.;
-;The specificators are :%b, %c, %d, %o, %s, %x. It's a try to write printf. ;
+;The function works with given string, which is stored in rdi. The purpose   ;
+;of it is to correctly interpret given bytes, according to specifications.;
+;The specifications are :%b, %c, %d, %o, %s, %x. It's a try to write printf. ;
 ;---------------------------------------------------------------------------;
-
 my_printf:
 ;---------------------------------------------------------------------------;
 ;here starts the main loop. It reads every symbol from rdi and works with it;
 ;---------------------------------------------------------------------------;
 
         WRITING:
-        cmp word [rel LEN], 256                 ;here and from then on , if 256 symbols were written - the buffer is filled
+        cmp word [rel len], 256                 ;here and from then on , if 256 symbols were written - the buffer is filled
         jae STOP
-        movzx r10, word [rel INDEX]             ;Index - the number of the symbol that we are to read from rdi
+        movzx r10, word [rel index]             ;Index - the number of the symbol that we are to read from rdi
         mov al, [rdi + r10]                                    
         cmp al, 0                               ;if the NULL byte is given, we've read everything, so terminate              
         je STOP
 
-        mov [rel SYMBOL], al                    ;inital value should be saved to use in case default
-        cmp al, '%'                             ;the specificators are separated with %
+        mov [rel symbol], al                    ;initial value should be saved to use in case default
+        cmp al, '%'                             ;the specifications are separated with %
         jne case_default                        ;if not % - just put the symbol in buf_to_wr
 
         movzx rbx, byte [rdi + r10 + 1]          
@@ -40,7 +39,7 @@ GO_BACK:                                        ;the value is stored in rax
         jmp [r11 + (rbx-'b')*8]                 ;to the right address
 
 ;---------------------------------------------------------------------------;
-;the algoritm is based in division. Until the quotient (stored in rax) is'nt;
+;the algorithm is based in division. Until the quotient (stored in rax) is'nt;
 ; 0, the value of remainder (stored in rdx) is being stored in buffer:      ;
 ;convert_value(it's needed,because the symbols are written from             ;
 ; the lowest to the greatest). Then it copies symbols from convert_value    ;
@@ -54,7 +53,7 @@ GO_BACK:                                        ;the value is stored in rax
         push rcx 
 
         lea r11, [rel buff_to_wr]               ;symbols will be written in r11:[r10]
-        movzx r10, word [rel LEN]               
+        movzx r10, word [rel len]               
         lea rdi, [rel convert_value]
         xor r8, r8
 
@@ -83,16 +82,16 @@ GO_BACK:                                        ;the value is stored in rax
         mov rcx , r8 
 
 .COPY:
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae .END
         dec r8
-        movzx r10, word [rel LEN]               
+        movzx r10, word [rel len]               
         mov al, byte [rdi + r8]                 ;the symbols from convert_value are being written in buff_t_wr
         mov [r11 + r10], al
-        add word [rel LEN], 1
+        add word [rel len], 1
 loop .COPY
-        add word [rel COUNTER], 1
-        add word [rel INDEX], 2
+        add word [rel counter], 1
+        add word [rel index], 2
 .END:
         pop rcx
         pop r8
@@ -103,7 +102,7 @@ loop .COPY
 ;the bytes are being written in the binary way with (1/0)                   ;
 ;---------------------------------------------------------------------------;
         case_b:
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae STOP
 
         push r9
@@ -118,18 +117,18 @@ loop .COPY
         
 
 ;---------------------------------------------------------------------------;
-;It just writes a symbol in buff_to_wr and changes INDEX, COUNTER, LEN      ;
+;It just writes a symbol in buff_to_wr and changes index, counter, len      ;
 ;---------------------------------------------------------------------------;
 
         case_c:
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae STOP
         lea r11, [rel buff_to_wr]               ;char case - it puts the symbol in r11:[r10] 
-        movzx r10, word [rel LEN]
+        movzx r10, word [rel len]
         mov [r11 + r10], byte al
-        add word [rel COUNTER], 1               ;COUNTER is needed to control, form where should we get the informanion according to cdecl
-        add word [rel INDEX], 2                 ;2 is added so that %c is skipped, the next symbol can be read
-        add word [rel LEN], 1                   ;the real len of the symbols that will be written is incremented
+        add word [rel counter], 1               ;counter is needed to control, form where should we get the information according to cdecl
+        add word [rel index], 2                 ;2 is added so that %c is skipped, the next symbol can be read
+        add word [rel len], 1                   ;the real len of the symbols that will be written is incremented
 
         jmp WRITING                             
 
@@ -138,7 +137,7 @@ loop .COPY
 ;--------------------------------------------------------------------------;
 
         case_d:
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae STOP
         push r9
         mov r9, 10                               ;rax will be divided by 10
@@ -152,7 +151,7 @@ loop .COPY
 ;--------------------------------------------------------------------------;
         case_o:
 
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae STOP
         push r9
         mov r9, 8                               ;rax will be divided by 8
@@ -170,13 +169,13 @@ loop .COPY
         push rcx
         push r9
         lea r11, [rel buff_to_wr]               ;symbols will be written in r11:[r10]
-        movzx r10, word [rel LEN] 
+        movzx r10, word [rel len] 
         xor rcx, rcx         
         mov ecx, 256   
-        sub ecx, r10d                           ;the maximum amout of symbols, that can be written is
-        xor r9, r9                              ;256 - current LEN.
+        sub ecx, r10d                           ;the maximum amount of symbols, that can be written is
+        xor r9, r9                              ;256 - current len.
 .COPY:
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae .END
         cmp byte [rax + r9], 0
         je .END
@@ -184,11 +183,11 @@ loop .COPY
         mov [r11 + r10], bl
         inc r9
         inc r10
-        add word [rel LEN], 1
+        add word [rel len], 1
 loop .COPY
 .END:
-        add word [rel INDEX], 2
-        add word [rel COUNTER], 1
+        add word [rel index], 2
+        add word [rel counter], 1
         pop r9
         pop rcx
         jmp WRITING
@@ -197,7 +196,7 @@ loop .COPY
 ;the bytes are being written in the binary way with (0,...,9,A,..,F )      ;
 ;--------------------------------------------------------------------------;
         case_x:
-        cmp word [rel LEN], 256
+        cmp word [rel len], 256
         jae STOP
         push r9
         mov r9, 16                               ;rax will be divided by 16
@@ -206,16 +205,16 @@ loop .COPY
         pop r9
         jmp WRITING
 ;---------------------------------------------------------------------------;
-;when we are not working with specificator - just print symbol              ;
+;when we are not working with specification - just print symbol              ;
 ;---------------------------------------------------------------------------;
 
         case_default:
         lea r11, [rel buff_to_wr]
-        movzx r10, word [rel LEN]
-        mov al, [rel SYMBOL]                    ;the initial value was stored in 'SYMBOL'
+        movzx r10, word [rel len]
+        mov al, [rel symbol]                    ;the initial value was stored in 'SYMBOL'
         mov [r11 + r10], byte al
-        add  word [rel INDEX], 1
-        add  word [rel LEN], 1
+        add  word [rel index], 1
+        add  word [rel len], 1
         jmp WRITING
 ;---------------------------------------------------------------------------;
 
@@ -224,14 +223,14 @@ loop .COPY
         STOP:
         mov rdi, 1
         lea rsi, [rel buff_to_wr] 
-        movzx rdx, word [rel LEN]
+        movzx rdx, word [rel len]
         mov rax, 1
         syscall
         ret
 
         GET_CURRENT_VALUE:
         lea r11, [rel jmp_table_reg]
-        movzx r10, word [rel COUNTER]
+        movzx r10, word [rel counter]
         jmp [r11 + r10*8]
         
 
@@ -253,16 +252,16 @@ loop .COPY
         jmp GO_BACK
         case_stack:
         sub r10, 4                      ;after 6th argument , n-th is being stored in [rsp + 8*(n-6)]
-        mov rax, [rsp + 8*r10]          ;according to the meaning of COUNTER, n-th is being stored in
-        jmp GO_BACK                     ;[rsp+8*[COUNTER-4]]
+        mov rax, [rsp + 8*r10]          ;according to the meaning of counter, n-th is being stored in
+        jmp GO_BACK                     ;[rsp+8*[counter-4]]
 
 section .data
 ;---------------------------------------------------------------------------;
 
-        SYMBOL db 0
-        LEN dw 0
-        INDEX dw 0
-        COUNTER dw 0
+        symbol db 0
+        len dw 0
+        index dw 0
+        counter dw 0
 ;---------------------------------------------------------------------------;
 
         buff_to_wr:
