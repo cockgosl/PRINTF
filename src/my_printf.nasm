@@ -142,8 +142,20 @@ loop .COPY
         push r9
         mov r9, 10                               ;rax will be divided by 10
 
-        call CONVERT
+        movsxd rax, eax
 
+        test rax, rax                           ;if rax is unsigned - .SKIP
+        jns .SKIP
+
+        movzx r10, word [rel len]                
+        lea r11, [rel buff_to_wr]               
+        mov [r11 + r10], byte '-'               ;if it's signed - put '-' in the buffer
+        add word [rel len], 1   
+        neg rax                                 ;make rax = a, rax = -a(a<0)
+
+        .SKIP:
+
+        call CONVERT
         pop r9
         jmp WRITING
 ;--------------------------------------------------------------------------;
